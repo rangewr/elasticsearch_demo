@@ -1,0 +1,22 @@
+server:
+  port: 8080
+ 
+spring:
+  thymeleaf:
+    suffix: .html
+    prefix: classpath:/static/
+  jmx:
+    enabled: false
+  #------------------------------------elasticsearch config start----------------------------------
+
+  data:
+    elasticsearch:
+      cluster-name: my-application
+      hosts: 192.168.5.32,192.168.5.33,192.168.5.34
+      port: 9200
+      scheme: http
+      timeout: 5000
+  jackson:
+    default-property-inclusion: NON_NULL
+  
+  #--------------------------------------elasticsearch config end----------------------------------
