@@ -2,7 +2,7 @@
  * @Author: wangran
  * @Date: 2020-04-02 11:03:20
  * @LastEditors: wangran
- * @LastEditTime: 2020-04-15 09:57:05
+ * @LastEditTime: 2020-08-04 14:25:09
  */
 package com.example.elastic.demo.elasticsearch_demo.controller;
 
@@ -25,6 +25,8 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.CountRequest;
 import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.metrics.TopHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
@@ -64,6 +66,7 @@ public class ElasticSearchController {
         searchSourceBuilder.size(query.getPageSize());// 返回结果数
         searchRequest.source(searchSourceBuilder);
         SearchResponse response = client.search(searchRequest, RequestOptions.DEFAULT);
+        orderAfterAggregation(response);
         List<ElasticResult> queryList = new LinkedList<>();
         for (SearchHit searchHit : response.getHits()) {
             if (response.getHits().getHits().length <= 0) {
@@ -136,6 +139,26 @@ public class ElasticSearchController {
         CountResponse countResponse = client.count(countRequest, RequestOptions.DEFAULT);
         long count = countResponse.getCount();
         return count;
+    }
+
+    // @RequestMapping("/queryCount1")
+    public void orderAfterAggregation(SearchResponse sr) {
+        Terms agg = sr.getAggregations().get("agg");
+
+        // For each entry
+        for (Terms.Bucket entry : agg.getBuckets()) {
+            String key = entry.getKey().toString(); // bucket key
+            long docCount = entry.getDocCount(); // Doc count
+            // logger.info("key [{}], doc_count [{}]", key, docCount);
+            System.out.println("key [{}], doc_count [{}]"+ key+"------------"+ docCount);
+            // We ask for top_hits for each bucket
+            TopHits topHits = entry.getAggregations().get("top");
+            for (SearchHit hit : topHits.getHits().getHits()) {
+                System.out.println(" -> id [{}], _source [{}]" + hit.getId() + hit.getSourceAsString());
+                // logger.info(" -> id [{}], _source [{}]", hit.getId(),
+                // hit.getSourceAsString());
+            }
+        }
     }
 
 }
